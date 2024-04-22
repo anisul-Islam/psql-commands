@@ -1,5 +1,3 @@
-# psql-commands
-
 CREATE DATABASE ecommerce_sda;
 DROP DATABASE ecommerce_sda;
 
@@ -183,10 +181,16 @@ FROM Teachers
 GROUP BY Department;
 
 Teachers
+Id Name
+1
+2
+3
+
+Subjects
 Id  Name Department Salary
 1   X     Eng       3000
-2   X     Ben       4000
-3   X     Ben       3000
+1   X     Ben       4000
+1   X     Ben       3000
 4   X     Eng       8000
 5   X     Ben       4000
 6   X     Mat       3000
@@ -285,3 +289,77 @@ INNER JOIN Users u ON o.UserId = u.UserId;
 
 -- Join types 
 -- pgAdmin
+
+
+
+-- create a table for students where StudentId, FirstName, LastName, Gender, DOB, Age
+CREATE TABLE students (
+  StudentId INT PRIMARY KEY,
+  FirstName VARCHAR(50),
+  LastName VARCHAR(50),
+  Gender VARCHAR(50),
+  DOB DATE,
+  AGE INT
+);
+
+-- ALTER 
+
+ALTER TABLE students
+DROP AGE;
+
+-- INSERT RECORDS FOR THE STUDENTS TABLE 
+
+INSERT INTO students (StudentId, FirstName, LastName, Gender, DOB) VALUES 
+(1, 'firstName1', 'lastName1', 'Female', '1995-05-15'),
+(2, 'firstName2', 'lastName2', 'Male', '1995-05-15'),
+(3, 'firstName3', 'lastName3', 'Female', '1995-05-15'),
+(4, 'firstName4', 'lastName4', 'Male', '1995-05-15'),
+(5, 'firstName5', 'lastName5', 'Female', '1995-05-15'),
+(6, 'firstName7', 'lastName7', 'Female', '1995-05-15'),
+(8, 'firstName8', 'lastName8', 'Female', '1995-05-15');
+
+-- create a table for grades where StudentId, GradeId, Course, Grade 
+CREATE TABLE grades (
+  GradeId INT PRIMARY KEY,
+  StudentId INT,
+  Course VARCHAR(50),
+  Grade VARCHAR(50)
+);
+
+INSERT INTO grades (GradeId, StudentId, Course, Grade) VALUES 
+(1, 1, 'Math', 'A'),
+(2, 1, 'Science', 'A'),
+(3, 2, 'Math', 'A'),
+(4, 3, 'Science', 'A'),
+(4, 3, 'Science', 'A'),
+(7, 7, 'Math', 'A');
+
+INSERT INTO grades (GradeId, StudentId, Course, Grade) VALUES 
+(8, 7, 'Math', 'A');
+
+SELECT s.StudentId, s.FirstName, s.LastName, s.DOB, g.Course, g.Grade 
+FROM students AS s, grades AS g
+WHERE s.StudentId = g.StudentId;
+
+SELECT s.StudentId, s.FirstName, s.LastName, s.DOB, g.Course, g.Grade 
+FROM students AS s INNER JOIN grades AS g
+ON s.StudentId = g.StudentId;
+
+SELECT s.StudentId, s.FirstName, s.LastName, s.DOB, g.Course, g.Grade 
+FROM students AS s LEFT JOIN grades AS g
+ON s.StudentId = g.StudentId;
+
+SELECT s.StudentId, s.FirstName, s.LastName, s.DOB, g.Course, g.Grade 
+FROM students AS s RIGHT JOIN grades AS g
+ON s.StudentId = g.StudentId;
+
+SELECT s.StudentId, s.FirstName, s.LastName, s.DOB, g.Course, g.Grade 
+FROM students AS s FULL JOIN grades AS g
+ON s.StudentId = g.StudentId;
+
+-- View - A Virtual table 
+CREATE VIEW students_view AS
+SELECT StudentId, FirstName, Gender
+FROM students;
+
+SELECT * FROM students_view;
