@@ -363,3 +363,264 @@ SELECT StudentId, FirstName, Gender
 FROM students;
 
 SELECT * FROM students_view;
+
+
+
+// Array, UUID Data Type
+// Indexing
+// Transactions
+
+
+// ecommerece-api 
+
+- Tables: users, products, categories, orders, orderProducts
+
+- users: userId, name, email, password, address, image, mobile, createdAt, isAdmin, isBanned
+
+CREATE TABLE users(
+  userId SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(100) NOT NULL,
+  adress VARCHAR(255),
+  image VARCHAR(255),
+  isAdmin BOOLEAN DEFAULT FALSE,
+  isBanned BOOLEAN DEFAULT FALSE,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE users
+RENAME COLUMN adress TO address;
+
+
+INSERT INTO Users (name, email, password, address, image, isAdmin, isBanned)
+VALUES 
+  ('John Doe', 'john@example.com', 'password123', '123 Main St', 'profile.jpg', TRUE, FALSE),
+  ('Alice Smith', 'alice@example.com', 'password456', '456 Elm St', 'avatar.png', FALSE, FALSE),
+  ('Bob Johnson', 'bob@example.com', 'password789', '789 Oak St', NULL, FALSE, TRUE),
+  ('Emily Davis', 'emily@example.com', 'passwordabc', NULL, 'default.jpg', FALSE, FALSE),
+  ('Michael Brown', 'michael@example.com', 'passwordxyz', '567 Pine St', 'user.png', TRUE, FALSE);
+
+
+- categories: categoryId, name, slug, description, createdAt
+
+CREATE TABLE categories(
+  categoryId SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+  INSERT INTO categories (name, slug, description)
+  VALUES 
+  ('Electronics', 'electronics', 'Electronic devices and accessories'),
+  ('Clothing', 'clothing', 'Apparel and fashion accessories'),
+  ('Books', 'books', 'Fiction and non-fiction literature'),
+  ('Home Decor', 'home-decor', 'Decorative items for the home'),
+  ('Toys', 'toys', 'Children''s toys and games'); 
+
+- products: productId, name, slug, description, price, quantity, sold, createdAt, image, categoryId, shipping
+
+CREATE TABLE products(
+  productId SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL,  
+  image VARCHAR(100),  
+  description TEXT, 
+  price DECIMAL(10,2) NOT NULL,
+  quantity INT DEFAULT 0,
+  sold INT DEFAULT 0,
+  shipping DECIMAL(10,2) DEFAULT 0,
+  categoryId INT REFERENCES categories(categoryId),
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ALTER TABLE products
+-- ALTER shipping TYPE BOOLEAN;
+
+  INSERT INTO products (name, slug, description, price, quantity, sold, image, shipping, categoryID, createdAt)
+VALUES 
+  ('Laptop', 'laptop', 'High-performance laptop with SSD storage', 999.99, 50, 10, 'laptop.jpg', 0, 1, NOW()),
+  ('Smartphone', 'smartphone', 'Latest smartphone model with 5G connectivity', 699.99, 100, 30, 'smartphone.jpg', 0, 1, NOW()),
+  ('T-shirt', 't-shirt', 'Cotton t-shirt with trendy design', 19.99, 200, 80, 't-shirt.jpg', 2.5, 2, NOW()),
+  ('Jeans', 'jeans', 'Denim jeans for casual wear', 39.99, 150, 60, 'jeans.jpg', 0, 2, NOW()),
+  ('Novel', 'novel', 'Bestselling fiction novel', 12.99, 300, 120, 'novel.jpg', 0, 3, NOW()),
+  ('Cookbook', 'cookbook', 'Collection of popular recipes', 24.99, 100, 40, 'cookbook.jpg', 0, 3, NOW()),
+  ('Throw Pillow', 'throw-pillow', 'Decorative throw pillow for couch', 29.99, 50, 20, 'throw-pillow.jpg', 0, 4, NOW()),
+  ('Wall Art', 'wall-art', 'Canvas wall art for home decor', 49.99, 80, 30, 'wall-art.jpg', 0, 4, NOW()),
+  ('Action Figure', 'action-figure', 'Collectible action figure', 14.99, 120, 50, 'action-figure.jpg', 0, 5, NOW()),
+  ('Board Game', 'board-game', 'Popular board game for family fun', 29.99, 70, 30, 'board-game.jpg', 0, 5, NOW()),
+  ('Headphones', 'headphones', 'Wireless headphones with noise cancellation', 149.99, 90, 40, 'headphones.jpg', 1.5, 1, NOW()),
+  ('Smart Watch', 'smart-watch', 'Fitness tracker smart watch', 199.99, 60, 20, 'smart-watch.jpg', 1.5, 1, NOW()),
+  ('Dress', 'dress', 'Elegant dress for special occasions', 79.99, 80, 25, 'dress.jpg', 1.5, 2, NOW()),
+  ('Sneakers', 'sneakers', 'Stylish sneakers for everyday wear', 59.99, 120, 45, 'sneakers.jpg', 0, 2, NOW()),
+  ('Cooking Utensils Set', 'cooking-utensils-set', 'Complete set of kitchen utensils', 49.99, 100, 35, 'cooking-utensils-set.jpg', 0, 4, NOW());
+
+
+- orders: odrerId, orderDate, status, payment, userId, productIDs, createdAt
+
+CREATE TABLE orders(
+  orderId SERIAL PRIMARY KEY,
+  orderDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status VARCHAR(100) DEFAULT 'Pending',
+  payment JSONB,
+  userId INT REFERENCES users(userId),
+  productIDs INT[],
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO orders (orderDate, status, userID, payment, productIDs)
+VALUES
+  ('2024-04-20', 'Pending', 1, '{"method": "Credit Card", "amount": 50}', '{1, 2}'),
+  ('2024-04-21', 'Processing', 2, '{"method": "PayPal", "amount": 70}', '{3, 4, 5}'),
+  ('2024-04-22', 'Shipped', 3, '{"method": "Bank Transfer", "amount": 100}', '{1, 3, 5}'),
+  ('2024-04-23', 'Delivered', 4, '{"method": "Cash on Delivery", "amount": 80}', '{2, 4}'),
+  ('2024-04-24', 'Pending', 5, '{"method": "Credit Card", "amount": 120}', '{1, 2, 3}');
+
+
+SELECT p.*
+FROM products p
+JOIN (
+SELECT UNNEST(productIDs) AS productID
+FROM orders
+WHERE orderId = 1
+) o ON p.productId = o.productID;
+
+
+
+-- How to Use UUID
+-- Indexing with example 
+-- Relationship between tables
+-- REST API
+-- How to connect c# .NET with psql
+-- Build a REST API
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users(
+  userId UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  address VARCHAR(255),
+  image VARCHAR(255),
+  isAdmin BOOLEAN DEFAULT FALSE,
+  isBanned BOOLEAN DEFAULT FALSE,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- uuid-ossp
+
+SELECT * FROM pg_extension WHERE extname = 'uuid-ossp';
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+
+INSERT INTO users (name, email, password, address, image, isAdmin, isBanned)
+VALUES 
+  ('John Doe', 'john@example.com', 'password123', '123 Main St', 'profile.jpg', TRUE, FALSE),
+  ('Alice Smith', 'alice@example.com', 'password456', '456 Elm St', 'avatar.png', FALSE, FALSE),
+  ('Bob Johnson', 'bob@example.com', 'password789', '789 Oak St', NULL, FALSE, TRUE),
+  ('Emily Davis', 'emily@example.com', 'passwordabc', NULL, 'default.jpg', FALSE, FALSE),
+  ('Michael Brown', 'michael@example.com', 'passwordxyz', '567 Pine St', 'user.png', TRUE, FALSE);
+
+-- Indexing 
+
+-- check indexing exists in users table
+SELECT *
+FROM pg_indexes
+WHERE tablename = 'users';
+
+-- search an user based on address
+EXPLAIN ANALYZE SELECT *
+FROM users
+WHERE address = '789 Oak St';
+
+-- CREATE INDEX 
+CREATE INDEX idx_users_address ON users (address);
+
+
+-- API
+
+namespace ecommerce_api;
+
+public record class ProductDto(int ProductId, string Name, double Price);
+
+
+// HTTP
+GET http://localhost:5122/hello
+
+###
+GET http://localhost:5122/products
+
+###
+GET http://localhost:5122/products/4
+
+###
+POST http://localhost:5122/products
+Content-Type: application/json
+
+{
+"ProductId" : 4,
+"Name" : "iphone 15",
+"Price" : 101.5
+}
+
+###
+DELETE http://localhost:5122/products/4
+
+###
+GET http://localhost:5122/users
+
+###
+GET http://localhost:5122/orders
+
+###
+GET http://localhost:5122/categories
+
+using ecommerce_api;
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+List<ProductDto> products = new()
+{
+  new ProductDto(1, "Iphone 11", 350.50),
+  new ProductDto(2, "Samsung Galaxy", 450.50),
+  new ProductDto(3, "Motorola XII", 250.50),
+};
+
+app.MapGet("/products", () => products);
+
+
+app.MapGet("/products/{id}", (int id) => products.Find(product => product.ProductId == id));
+
+
+app.MapPost("/products", (ProductDto newProduct) =>
+{
+  products.Add(newProduct);
+  return products;
+});
+
+app.MapDelete("/products/{id}", (int id) =>
+{
+  var productToRemove = products.Find(product => product.ProductId == id);
+  if (productToRemove != null)
+  {
+    products.Remove(productToRemove);
+    return Results.Ok();
+  }
+  else
+  {
+    return Results.NotFound();
+  }
+});
+
+
+app.MapGet("/users", () => "all the users are returned!");
+app.MapGet("/categories", () => "all the categories are returned!");
+app.MapGet("/orders", () => "all the orders are returned!");
+
+app.Run();
+
+
+// 
